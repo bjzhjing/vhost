@@ -277,6 +277,7 @@ impl VhostUserMaster for Master {
     fn get_protocol_features(&mut self) -> Result<VhostUserProtocolFeatures> {
         let mut node = self.node.lock().unwrap();
         let flag = VhostUserVirtioFeatures::PROTOCOL_FEATURES.bits();
+        println!("node.virtio_features is {}, and flag is {}", node.virtio_features, flag);
         if node.virtio_features & flag == 0 || node.acked_virtio_features & flag == 0 {
             return error_code(VhostUserError::InvalidOperation);
         }
