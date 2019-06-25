@@ -87,7 +87,10 @@ impl Master {
     /// # Arguments
     /// * `path` - path of Unix domain socket listener to connect to
     pub fn connect(path: &str, max_queue_num: u64) -> Result<Self> {
-        Ok(Self::new(Endpoint::<MasterReq>::connect(path)?, max_queue_num))
+        Ok(Self::new(
+            Endpoint::<MasterReq>::connect(path)?,
+            max_queue_num,
+        ))
     }
 }
 
@@ -134,7 +137,8 @@ impl VhostBackend for Master {
     /// Set the memory map regions on the slave so it can translate the vring
     /// addresses. In the ancillary data there is an array of file descriptors
     fn set_mem_table(&mut self, regions: &[VhostUserMemoryRegionInfo]) -> Result<()> {
-        if regions.is_empty() || regions.len() > MAX_ATTACHED_FD_ENTRIES {
+        //if regions.is_empty() || regions.len() > MAX_ATTACHED_FD_ENTRIES {
+        if regions.is_empty() {
             return error_code(VhostUserError::InvalidParam);
         }
 
@@ -277,7 +281,10 @@ impl VhostUserMaster for Master {
     fn get_protocol_features(&mut self) -> Result<VhostUserProtocolFeatures> {
         let mut node = self.node.lock().unwrap();
         let flag = VhostUserVirtioFeatures::PROTOCOL_FEATURES.bits();
-        println!("node.virtio_features is {}, and flag is {}", node.virtio_features, flag);
+        println!(
+            "node.virtio_features is {}, and flag is {}",
+            node.virtio_features, flag
+        );
         if node.virtio_features & flag == 0 || node.acked_virtio_features & flag == 0 {
             return error_code(VhostUserError::InvalidOperation);
         }
