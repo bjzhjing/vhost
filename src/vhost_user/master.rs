@@ -138,9 +138,12 @@ impl VhostBackend for Master {
     /// addresses. In the ancillary data there is an array of file descriptors
     fn set_mem_table(&mut self, regions: &[VhostUserMemoryRegionInfo]) -> Result<()> {
         //if regions.is_empty() || regions.len() > MAX_ATTACHED_FD_ENTRIES {
+        println!("Entering vhost-user master...!");
         if regions.is_empty() {
             return error_code(VhostUserError::InvalidParam);
         }
+
+        println!("Entering vhost-user region number is {}!", regions.len());
 
         let mut ctx = VhostUserMemoryContext::new();
         for region in regions.iter() {
@@ -158,6 +161,7 @@ impl VhostBackend for Master {
 
         let mut node = self.node.lock().unwrap();
         let body = VhostUserMemory::new(ctx.regions.len() as u32);
+        println!("set mem table is ready for request sending!");
         let hdr = node.send_request_with_payload(
             MasterReq::SET_MEM_TABLE,
             &body,
@@ -332,6 +336,7 @@ impl VhostUserMaster for Master {
     fn set_vring_enable(&mut self, queue_index: usize, enable: bool) -> Result<()> {
         let mut node = self.node.lock().unwrap();
         // set_vring_enable() is supported only when PROTOCOL_FEATURES has been enabled.
+        println!("node.acked_virtio_features is {}", node.acked_virtio_features);
         if node.acked_virtio_features & VhostUserVirtioFeatures::PROTOCOL_FEATURES.bits() == 0 {
             return error_code(VhostUserError::InvalidOperation);
         } else if queue_index as u64 >= node.max_queue_num {
